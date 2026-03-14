@@ -1,0 +1,117 @@
+---
+title: "Export Results to CSV"
+description: "Download your analysis results as a CSV file for offline reporting or sharing."
+---
+
+SentimentAPI provides two ways to export results to CSV depending on which feature produced them. Both export buttons appear only after results have been loaded on their respective pages.
+
+<Tabs>
+  <Tab title="From bulk analysis">
+    After uploading a CSV file and viewing the results on `/sentiment/upload-csv`, click **Exportar CSV** to download the results.
+
+    ### How it works
+
+    The dashboard sends the current results array to the API, which generates and returns a binary CSV file:
+
+    ```http
+    POST /sentiment/export-csv
+    Authorization: Bearer <token>
+    Content-Type: application/json
+
+    [
+      {
+        "texto": "Great product, very satisfied",
+        "prevision": "POSITIVO",
+        "probabilidad": 0.964
+      },
+      {
+        "texto": "Delivery was late and packaging damaged",
+        "prevision": "NEGATIVO",
+        "probabilidad": 0.871
+      }
+    ]
+    ```
+
+    The API responds with a binary CSV blob. The browser downloads the file automatically.
+
+    ### Output file
+
+    The downloaded file is named **`resultados_sentimiento.csv`**. It contains the same rows displayed in the results table: one row per comment with `texto`, `prevision`, and `probabilidad` columns.
+
+    <Note>
+      The export button is only visible after the processing results have loaded. If no results are displayed, the button does not appear.
+    </Note>
+  </Tab>
+
+  <Tab title="From statistics">
+    After fetching records on `/sentiment/statistics`, click **Exportar CSV** to download a formatted report generated entirely in the browser.
+
+    ### How it works
+
+    No additional API call is made. The dashboard reads the `content` array from the statistics response already in memory, builds the CSV client-side, and triggers a browser download.
+
+    ### Output file
+
+    The downloaded file is named **`reporte_sentimientos_<timestamp>.csv`**, where `<timestamp>` is the Unix timestamp at the moment of export (for example, `reporte_sentimientos_1705312200000.csv`). This ensures each export has a unique filename.
+
+    The file is encoded with a **UTF-8 BOM** (`\uFEFF`) prepended to the content, which allows Microsoft Excel to correctly detect the encoding and display accented characters without garbling.
+
+    ### CSV format
+
+    The statistics export includes a summary section at the top of the file, followed by the individual records:
+
+    ```csv
+    RESUMEN DE ANALISIS DE LOS ULTIMOS 50 COMENTARIOS
+    Total en pagina, 50
+    Positivos, 72.5
+    Negativos, 27.5
+
+    ID, Comentario, Prevision, Probabilidad, Fecha Registro
+    1, "Great product", POSITIVO, 0.964, "2024-01-15T10:30:00"
+    2, "Delivery was late", NEGATIVO, 0.871, "2024-01-15T09:15:00"
+    ```
+
+    The summary section uses the values from the API response:
+
+    | Summary row | Source field |
+    |---|---|
+    | `Total en pagina` | `total_en_pagina` |
+    | `Positivos` | `positivos` (percentage string, e.g. `"72.5"`) |
+    | `Negativos` | `negativos` (percentage string, e.g. `"27.5"`) |
+
+    The data rows use these column headers:
+
+    | Column | Source field |
+    |---|---|
+    | `ID` | `id` |
+    | `Comentario` | `comentario` |
+    | `Prevision` | `prevision` |
+    | `Probabilidad` | `probabilidad` |
+    | `Fecha Registro` | `fecharegistro` |
+
+    <Note>
+      The export button is only visible after statistics results have loaded. If no results are displayed, the button does not appear.
+    </Note>
+  </Tab>
+</Tabs>
+
+## Comparison
+
+| | From bulk analysis | From statistics |
+|---|---|---|
+| **Trigger** | `POST /sentiment/export-csv` | Client-side generation |
+| **Filename** | `resultados_sentimiento.csv` | `reporte_sentimientos_<timestamp>.csv` |
+| **Includes summary section** | No | Yes |
+| **Encoding** | Standard | UTF-8 BOM |
+| **Source data** | Bulk upload results | Statistics `content` array |
+
+## What's next
+
+<CardGroup cols={2}>
+  <Card title="Single comment analysis" icon="comment" href="/features/single-analysis">
+    Analyze one comment at a time from the Analysis Panel.
+  </Card>
+  <Card title="Statistics panel" icon="chart-bar" href="/features/statistics">
+    Retrieve and review aggregated sentiment statistics from the database.
+  </Card>
+</CardGroup>

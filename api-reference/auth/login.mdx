@@ -1,0 +1,56 @@
+---
+title: "POST /login"
+description: "Authenticate and receive a JWT token."
+---
+
+**`POST /login`** — No authentication required.
+
+Exchange your email and password for a JWT token. Pass this token as a Bearer token in the `Authorization` header for all subsequent requests.
+
+## Request body
+
+<ParamField body="email" type="string" required>
+  The user's email address.
+</ParamField>
+
+<ParamField body="contrasenia" type="string" required>
+  The user's password.
+</ParamField>
+
+### Example request
+
+```http
+POST /login
+Content-Type: application/json
+
+{
+  "email": "user@example.com",
+  "contrasenia": "your_password"
+}
+```
+
+## Response
+
+A successful response returns a JSON object containing a JWT token.
+
+### Example response
+
+```json
+{ "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." }
+```
+
+<ResponseField name="token" type="string">
+  JWT Bearer token. Valid for 2 hours. Pass this value in the `Authorization: Bearer <token>` header for all authenticated endpoints.
+</ResponseField>
+
+## Error cases
+
+| Scenario | Behavior |
+|----------|----------|
+| Incorrect email or password | Non-2xx HTTP response from the server |
+| API service unavailable | Network/fetch error — no response received |
+| Token missing from response | Response body does not contain a `token` field |
+
+<Note>
+  The SentimentAPI frontend stores the returned token as an httpOnly cookie automatically. If you are calling the API directly from your own client, extract the `token` field and include it in the `Authorization` header for all subsequent requests.
+</Note>

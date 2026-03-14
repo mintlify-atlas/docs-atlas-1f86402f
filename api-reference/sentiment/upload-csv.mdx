@@ -1,0 +1,62 @@
+---
+title: "POST /sentiment/upload-csv"
+description: "Upload a CSV file for bulk sentiment analysis."
+---
+
+**`POST /sentiment/upload-csv`** — Requires `Authorization: Bearer <token>`.
+
+Upload a `.csv` file containing a list of comments for bulk sentiment analysis. The file is processed server-side and returns the same result format as `POST /sentiment`.
+
+## Request
+
+The request must use `multipart/form-data` encoding.
+
+<ParamField body="file" type="file" required>
+  A `.csv` file to analyze. Maximum size is **3 MB**. The file must include a `texto` column containing the comment text for each row.
+</ParamField>
+
+### CSV format
+
+The uploaded file must have a `texto` column header:
+
+```csv
+texto
+"Great product, very satisfied"
+"Delivery was late and packaging damaged"
+"Excellent customer service"
+```
+
+### Example request
+
+```bash
+curl -X POST "${API_URL}/sentiment/upload-csv" \
+  -H "Authorization: Bearer <token>" \
+  -F "file=@comments.csv"
+```
+
+## Response
+
+Returns an array of result objects, one per row in the uploaded CSV.
+
+```json
+[
+  { "texto": "Great product, very satisfied", "prevision": "POSITIVO", "probabilidad": 0.981 },
+  { "texto": "Delivery was late and packaging damaged", "prevision": "NEGATIVO", "probabilidad": 0.953 },
+  { "texto": "Excellent customer service", "prevision": "POSITIVO", "probabilidad": 0.977 }
+]
+```
+
+See [POST /sentiment](/api-reference/sentiment/analyze) for a full description of response fields.
+
+## Error codes
+
+| Code | Meaning |
+|------|---------|
+| 401 | File exceeds the 3 MB client-side size limit |
+| 413 | Server-side request entity too large |
+| 403 | Insufficient permissions |
+| 500 | Internal server error |
+
+<Warning>
+  A `401` response from this endpoint indicates the uploaded file is too large (over 3 MB), not an authentication failure. Ensure your CSV file is under 3 MB before uploading.
+</Warning>

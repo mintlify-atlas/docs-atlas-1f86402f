@@ -1,0 +1,85 @@
+---
+title: "Single Comment Analysis"
+description: "Analyze one comment at a time and get an instant AI sentiment classification."
+---
+
+The Analysis Panel at `/sentiment` lets you submit a single comment and receive a classification label and confidence score in real time. Use this when you need a quick assessment of a specific piece of feedback without preparing a CSV file.
+
+## Workflow
+
+<Steps>
+  <Step title="Navigate to the Analysis Panel">
+    Go to `/sentiment` in your browser. If your session has expired, you will see a "No autenticado" message — navigate to `/login` first and authenticate to receive a fresh token.
+  </Step>
+
+  <Step title="Enter your comment">
+    Type the text you want to analyze into the input field. This can be a customer review, support ticket excerpt, survey response, or any free-form text.
+  </Step>
+
+  <Step title="Submit for analysis">
+    Click **Analizar Sentimientos**. The panel sends your comment to the API and displays the result in the table below the input field.
+  </Step>
+
+  <Step title="Review the result">
+    The results table shows the classification and confidence score for your comment. See the [Results table](#results-table) section below for a full description of each column.
+  </Step>
+</Steps>
+
+## API call
+
+When you submit a comment, the dashboard makes the following request:
+
+```http
+POST /sentiment
+Authorization: Bearer <token>
+Content-Type: application/json
+
+[{ "texto": "Your comment here" }]
+```
+
+The request body is an array so the same endpoint handles both single and bulk analysis from the backend's perspective. The dashboard always sends a single-element array for single-comment submissions.
+
+### Example response
+
+```json
+[
+  {
+    "texto": "The service exceeded my expectations",
+    "prevision": "POSITIVO",
+    "probabilidad": 0.964
+  }
+]
+```
+
+<Note>
+  The `probabilidad` field is a decimal between `0` and `1`. A value of `0.964` means the model is 96.4% confident in its `POSITIVO` classification.
+</Note>
+
+## Results table
+
+After a successful analysis, the results appear in a table with the following columns:
+
+| Column | Description |
+|---|---|
+| **Comentario** | The original comment text you submitted |
+| **Prevision** | A colored badge showing the classification: green for `POSITIVO`, red for `NEGATIVO` |
+| **Probabilidad** | The confidence score displayed as a percentage (e.g., `96.4%`) alongside a mini progress bar |
+
+The progress bar in the **Probabilidad** column gives you a quick visual sense of how decisive the model's classification was. Scores above `0.85` indicate high confidence; scores closer to `0.5` indicate the comment is near the decision boundary.
+
+## Authentication requirement
+
+<Warning>
+  This feature requires an active session. If your JWT token has expired, the panel displays a "No autenticado" error instead of results. Navigate to `/login` and sign in again to restore access.
+</Warning>
+
+## What's next
+
+<CardGroup cols={2}>
+  <Card title="Bulk CSV analysis" icon="file-csv" href="/features/bulk-csv-analysis">
+    Analyze thousands of comments at once by uploading a CSV file.
+  </Card>
+  <Card title="Export results" icon="download" href="/features/export-csv">
+    Download your analysis results as a CSV file for reporting.
+  </Card>
+</CardGroup>

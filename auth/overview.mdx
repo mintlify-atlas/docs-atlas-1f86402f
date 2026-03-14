@@ -1,0 +1,63 @@
+---
+title: "Authentication Overview"
+description: "How SentimentAPI handles authentication using JWT tokens and secure cookies."
+---
+
+SentimentAPI uses a two-layer authentication model: a server-managed session cookie for page navigation and a JWT Bearer token for direct API calls. Both are derived from the same token issued by the backend at login.
+
+## Authentication flow
+
+<Steps>
+  <Step title="User submits login form">
+    The login form at `/login` collects an email address and password. On submission, the form triggers a Next.js server action — no client-side fetch is involved.
+  </Step>
+  <Step title="Server action calls the backend">
+    The `loginAction` server action sends a `POST /login` request to the backend API with the submitted credentials. This runs entirely on the server.
+  </Step>
+  <Step title="Backend returns a JWT">
+    On success, the backend responds with a JSON object containing a `token` field — a signed JWT.
+  </Step>
+  <Step title="Token stored as an httpOnly cookie">
+    The server action writes the token to a `session_token` cookie using Next.js `cookies()`. The cookie is `httpOnly`, so it is never accessible to browser JavaScript.
+  </Step>
+  <Step title="Cookie sent automatically with subsequent requests">
+    The browser attaches `session_token` to every request to the Next.js server automatically. Protected server-side logic can read the cookie to verify the session.
+  </Step>
+  <Step title="Client reads token from UserContext">
+    On the client side, the token is also made available through the `useUser()` hook from `context/UserContext`. Components use `user.token` to set the `Authorization: Bearer` header on direct API calls.
+  </Step>
+</Steps>
+
+## Two authentication layers
+
+| Layer | Mechanism | Managed by | Used for |
+|---|---|---|---|
+| Session cookie | `session_token` httpOnly cookie | Next.js server | Page-level auth, server-side checks |
+| Bearer token | `Authorization: Bearer <token>` header | `UserContext` on the client | Direct API calls from React components |
+
+Both layers carry the same JWT. The cookie is set once at login and expires automatically. The Bearer token is read from `user.token` in `UserContext` and included manually in fetch requests.
+
+## Session expiry
+
+The `session_token` cookie has a `maxAge` of **7,200 seconds (2 hours)**. After expiry:
+
+- The cookie is no longer sent with requests.
+- `user?.token` in `UserContext` will be `null`.
+- All protected pages (`/sentiment`, `/sentiment/upload-csv`, `/sentiment/statistics`) detect the null token and display a "No autenticado" message with a link back to `/login`.
+
+To resume using the application, log in again to obtain a new session.
+
+<Note>
+  Sessions are not automatically renewed. If you need a longer session, log in again before the 2-hour window closes.
+</Note>
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Logging in" icon="arrow-right-to-bracket" href="/auth/login">
+    Step-by-step guide to authenticating with your email and password.
+  </Card>
+  <Card title="Session management" icon="clock" href="/auth/session-management">
+    How the session cookie works and how to use the token in API calls.
+  </Card>
+</CardGroup>

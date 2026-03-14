@@ -1,0 +1,63 @@
+---
+title: "POST /sentiment"
+description: "Analyze one or more text comments and classify each as positive or negative."
+---
+
+**`POST /sentiment`** — Requires `Authorization: Bearer <token>`.
+
+Submit an array of comment objects for sentiment analysis. Each comment is classified as `POSITIVO` or `NEGATIVO` with a confidence score. Pass an array with a single item to analyze one comment.
+
+## Request body
+
+The request body is an array of objects. Each object has the following field:
+
+<ParamField body="texto" type="string" required>
+  The comment text to analyze.
+</ParamField>
+
+### Example request — single comment
+
+```http
+POST /sentiment
+Authorization: Bearer <token>
+Content-Type: application/json
+
+[
+  { "texto": "The service exceeded my expectations" }
+]
+```
+
+### Example request — multiple comments
+
+```json
+[
+  { "texto": "Great product quality" },
+  { "texto": "Very slow delivery, disappointed" },
+  { "texto": "Excellent customer support" }
+]
+```
+
+## Response
+
+Returns an array of result objects, one per input comment, in the same order.
+
+### Example response
+
+```json
+[
+  { "texto": "The service exceeded my expectations", "prevision": "POSITIVO", "probabilidad": 0.964 },
+  { "texto": "Very slow delivery, disappointed", "prevision": "NEGATIVO", "probabilidad": 0.921 }
+]
+```
+
+<ResponseField name="texto" type="string">
+  The original comment text, echoed back from the request.
+</ResponseField>
+
+<ResponseField name="prevision" type="string">
+  Classification result. One of `"POSITIVO"` or `"NEGATIVO"`.
+</ResponseField>
+
+<ResponseField name="probabilidad" type="number">
+  Confidence score for the classification, between 0 and 1. Higher values indicate greater certainty.
+</ResponseField>

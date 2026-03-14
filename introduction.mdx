@@ -1,0 +1,76 @@
+---
+title: "Introduction"
+description: "SentimentAPI is an AI-powered sentiment analysis platform that classifies customer comments as positive or negative — with a confidence score on every result."
+---
+
+SentimentAPI lets your team analyze the sentiment of customer feedback at any scale. Submit a single comment through the dashboard or upload thousands at once via CSV. The AI model returns a classification and probability score for each entry so you can act on feedback with confidence.
+
+## Classification labels
+
+Every comment is classified into one of two labels:
+
+| Label | Meaning |
+|---|---|
+| `POSITIVO` | The comment expresses a positive sentiment |
+| `NEGATIVO` | The comment expresses a negative sentiment |
+
+Each result also includes a `probabilidad` score between `0` and `1` indicating how confident the model is in its classification. A score of `0.964` means the model is 96.4% confident in its label.
+
+## Sentiment result shape
+
+All analyses — single or bulk — return results in the same JSON format:
+
+```json
+[
+  {
+    "texto": "The service exceeded my expectations",
+    "prevision": "POSITIVO",
+    "probabilidad": 0.964
+  }
+]
+```
+
+| Field | Type | Description |
+|---|---|---|
+| `texto` | `string` | The original comment text submitted for analysis |
+| `prevision` | `"POSITIVO"` \| `"NEGATIVO"` | Model classification |
+| `probabilidad` | `number` | Confidence score between 0 and 1 |
+
+## Core capabilities
+
+SentimentAPI provides four main features accessible from the dashboard:
+
+**Single comment analysis** — Enter any text in the Analysis Panel and receive a classification with a confidence score in real time. Results appear in a table with a sentiment badge and probability bar.
+
+**Bulk CSV upload** — Upload a CSV file (up to 3 MB) with a `texto` column. The platform processes every row through the AI model and returns a full results table you can review and export.
+
+**Statistics panel** — Fetch the N most recent analyses stored in the database. The panel shows total records, percentage positive, and percentage negative in summary cards alongside the individual records.
+
+**CSV export** — Download any results table as a formatted CSV file for reporting, archiving, or sharing with your team.
+
+## Authentication model
+
+SentimentAPI uses JWT-based authentication. When you log in with your email and password, the server issues a Bearer token that is stored in a secure `httpOnly` cookie. This token is automatically included in every subsequent API request.
+
+Sessions expire after **2 hours**. After expiry you will see a "No autenticado" message and must log in again.
+
+<Note>
+  All API calls require a valid Bearer token obtained from `POST /login`. If your session has expired, navigate to `/login` and authenticate again to receive a new token.
+</Note>
+
+## Explore the documentation
+
+<CardGroup cols={2}>
+  <Card title="Quickstart" icon="rocket" href="/quickstart">
+    Log in and run your first sentiment analysis in under 5 minutes.
+  </Card>
+  <Card title="Single analysis" icon="comment" href="/features/single-analysis">
+    Analyze one comment at a time from the Analysis Panel.
+  </Card>
+  <Card title="Bulk CSV analysis" icon="file-csv" href="/features/bulk-csv-analysis">
+    Upload a CSV file and process thousands of comments at once.
+  </Card>
+  <Card title="API reference" icon="code" href="/api-reference/overview">
+    Explore every endpoint with parameters and response schemas.
+  </Card>
+</CardGroup>

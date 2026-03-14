@@ -1,0 +1,94 @@
+---
+title: "GET /stats"
+description: "Retrieve the most recent sentiment analysis records with aggregate statistics."
+---
+
+**`GET /stats`** — Requires `Authorization: Bearer <token>`.
+
+Fetch a page of the most recently analyzed sentiment records along with aggregate statistics for the full dataset.
+
+## Query parameters
+
+<ParamField query="size" type="number" required>
+  The number of most recent records to retrieve per page.
+</ParamField>
+
+### Example request
+
+```http
+GET /stats?size=50
+Authorization: Bearer <token>
+```
+
+## Response
+
+### Example response
+
+```json
+{
+  "total_en_pagina": 50,
+  "positivos": "72.5",
+  "negativos": "27.5",
+  "totalElements": 342,
+  "totalPages": 7,
+  "number": 0,
+  "content": [
+    {
+      "id": 1,
+      "comentario": "Great product",
+      "prevision": "POSITIVO",
+      "probabilidad": 0.964,
+      "fecharegistro": "2024-01-15T10:30:00"
+    }
+  ]
+}
+```
+
+<ResponseField name="total_en_pagina" type="number">
+  The number of records returned in this page.
+</ResponseField>
+
+<ResponseField name="positivos" type="string">
+  Percentage of positive results across all records in the database (e.g. `"72.5"` means 72.5%). Divide by 100 to get a decimal value.
+</ResponseField>
+
+<ResponseField name="negativos" type="string">
+  Percentage of negative results across all records in the database (e.g. `"27.5"` means 27.5%). Divide by 100 to get a decimal value.
+</ResponseField>
+
+<ResponseField name="totalElements" type="number">
+  The total number of sentiment records stored in the database.
+</ResponseField>
+
+<ResponseField name="totalPages" type="number">
+  The total number of pages available given the requested `size`.
+</ResponseField>
+
+<ResponseField name="number" type="number">
+  The current page index, zero-based. The first page is `0`.
+</ResponseField>
+
+<ResponseField name="content" type="array">
+  Array of sentiment records for the current page.
+  <Expandable title="properties">
+    <ResponseField name="id" type="number">
+      Unique record ID assigned by the server.
+    </ResponseField>
+    <ResponseField name="comentario" type="string">
+      The comment text that was analyzed.
+    </ResponseField>
+    <ResponseField name="prevision" type="string">
+      Classification result: `"POSITIVO"` or `"NEGATIVO"`.
+    </ResponseField>
+    <ResponseField name="probabilidad" type="number">
+      Confidence score for the classification, between 0 and 1.
+    </ResponseField>
+    <ResponseField name="fecharegistro" type="string">
+      ISO 8601 timestamp indicating when the record was saved (e.g. `"2024-01-15T10:30:00"`).
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+<Note>
+  `positivos` and `negativos` are percentage strings representing the share of each sentiment across the entire dataset, not raw counts. To convert to a decimal ratio, divide by 100 (e.g. `"72.5"` → `0.725`).
+</Note>

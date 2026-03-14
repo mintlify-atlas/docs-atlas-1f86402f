@@ -1,0 +1,88 @@
+---
+title: "API Reference Overview"
+description: "Complete reference for all SentimentAPI backend endpoints."
+---
+
+SentimentAPI exposes a REST API for sentiment analysis of text comments. This reference covers all available endpoints, authentication requirements, and response formats.
+
+## Base URL
+
+The API base URL is configured via the `NEXT_PUBLIC_API_URL` environment variable in your frontend application. Set this to the address of your SentimentAPI backend:
+
+```bash
+NEXT_PUBLIC_API_URL=https://your-api-host.example.com
+```
+
+All endpoint paths in this reference are relative to this base URL.
+
+## Authentication
+
+All endpoints except `POST /login` require a JWT Bearer token in the `Authorization` header.
+
+### Getting a token
+
+Send a `POST /login` request with your credentials. A successful response returns a JWT token:
+
+```json
+{ "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." }
+```
+
+The SentimentAPI frontend stores this token as an httpOnly cookie automatically. If you are making direct API calls, include the token in every subsequent request.
+
+### Authenticated request example
+
+```http
+POST /sentiment
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+Content-Type: application/json
+
+[{ "texto": "This is my comment" }]
+```
+
+## Sentiment result format
+
+Endpoints that return analysis results use a consistent array format:
+
+```json
+[
+  {
+    "texto": "This is my comment",
+    "prevision": "POSITIVO",
+    "probabilidad": 0.964
+  }
+]
+```
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `texto` | string | The original comment text |
+| `prevision` | string | Classification result: `"POSITIVO"` or `"NEGATIVO"` |
+| `probabilidad` | number | Confidence score between 0 and 1 |
+
+## Endpoints
+
+| Method | Path | Auth required | Description |
+|--------|------|---------------|-------------|
+| `POST` | `/login` | No | Authenticate and receive a JWT token |
+| `POST` | `/sentiment` | Yes | Analyze one or more text comments |
+| `POST` | `/sentiment/upload-csv` | Yes | Upload a CSV file for bulk sentiment analysis |
+| `POST` | `/sentiment/export-csv` | Yes | Export sentiment results as a downloadable CSV |
+| `GET` | `/stats` | Yes | Retrieve recent records with aggregate statistics |
+
+<CardGroup cols={2}>
+  <Card title="POST /login" icon="key" href="/api-reference/auth/login">
+    Authenticate with email and password to receive a JWT token.
+  </Card>
+  <Card title="POST /sentiment" icon="brain" href="/api-reference/sentiment/analyze">
+    Analyze one or more text comments and classify each as positive or negative.
+  </Card>
+  <Card title="POST /sentiment/upload-csv" icon="file-arrow-up" href="/api-reference/sentiment/upload-csv">
+    Upload a CSV file for bulk sentiment analysis.
+  </Card>
+  <Card title="POST /sentiment/export-csv" icon="file-arrow-down" href="/api-reference/sentiment/export-csv">
+    Export an array of sentiment results as a downloadable CSV file.
+  </Card>
+  <Card title="GET /stats" icon="chart-bar" href="/api-reference/stats/get-statistics">
+    Retrieve recent sentiment analysis records with aggregate statistics.
+  </Card>
+</CardGroup>

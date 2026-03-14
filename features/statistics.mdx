@@ -1,0 +1,130 @@
+---
+title: "Statistics Panel"
+description: "View a summary of your most recent sentiment analyses stored in the database."
+---
+
+The Statistics Panel at `/sentiment/statistics` lets you retrieve a paginated snapshot of the most recent analyses stored in the database. Unlike the single and bulk analysis features — which classify new comments — the statistics panel reads from already-processed records. Use it to monitor sentiment trends over time or to review the results of past uploads.
+
+## Workflow
+
+<Steps>
+  <Step title="Navigate to the Statistics Panel">
+    Go to `/sentiment/statistics`. You must be logged in; if your session has expired you will see a "No autenticado" state.
+  </Step>
+
+  <Step title="Enter the number of records">
+    In the **Cantidad de registros** input field, enter a number `N`. This controls how many records the API returns — for example, entering `50` retrieves the 50 most recent analyses.
+  </Step>
+
+  <Step title="Click Analizar">
+    Click **Analizar**. The panel sends a `GET` request to the API and waits for the response.
+  </Step>
+
+  <Step title="Review the summary cards">
+    Three summary cards appear at the top of the page:
+
+    - **Total comments** — the number of records returned in this page
+    - **Positivos** — the percentage of those records classified as `POSITIVO`
+    - **Negativos** — the percentage of those records classified as `NEGATIVO`
+  </Step>
+
+  <Step title="Browse the results table">
+    Below the summary cards, a table lists each individual record with its comment text, classification badge, and probability score. You can also export these records to CSV using the **Exportar CSV** button that appears after the results load.
+  </Step>
+</Steps>
+
+## API call
+
+The panel sends the following request:
+
+```http
+GET /stats?size=50
+Authorization: Bearer <token>
+```
+
+Replace `50` with the number you entered in the input field.
+
+### Example response
+
+```json
+{
+  "total_en_pagina": 50,
+  "positivos": "72.5",
+  "negativos": "27.5",
+  "totalElements": 342,
+  "totalPages": 7,
+  "number": 0,
+  "content": [
+    {
+      "id": 1,
+      "comentario": "Great product",
+      "prevision": "POSITIVO",
+      "probabilidad": 0.964,
+      "fecharegistro": "2024-01-15T10:30:00"
+    }
+  ]
+}
+```
+
+## Response fields
+
+| Field | Type | Description |
+|---|---|---|
+| `total_en_pagina` | `number` | Number of records included in this response |
+| `positivos` | `string` | Percentage of records in this page classified as `POSITIVO` (e.g. `"72.5"`) |
+| `negativos` | `string` | Percentage of records in this page classified as `NEGATIVO` (e.g. `"27.5"`) |
+| `totalElements` | `number` | Total number of records stored in the database across all pages |
+| `totalPages` | `number` | Total number of pages available at the requested page size |
+| `number` | `number` | The current page index (zero-based) |
+| `content` | `array` | The individual sentiment records for this page |
+
+<Note>
+  `positivos` and `negativos` are strings representing percentages, not raw counts. A value of `"72.5"` means 72.5% of the records on the current page were classified as positive — not that 72.5 records were positive.
+</Note>
+
+## Content record fields
+
+Each object in the `content` array represents a stored analysis result:
+
+| Field | Type | Description |
+|---|---|---|
+| `id` | `number` | Unique database identifier for the record |
+| `comentario` | `string` | The original comment text that was analyzed |
+| `prevision` | `"POSITIVO"` \| `"NEGATIVO"` | The model's classification |
+| `probabilidad` | `number` | Confidence score between 0 and 1 |
+| `fecharegistro` | `string` | ISO 8601 timestamp of when the analysis was stored |
+
+## Summary cards
+
+The three cards at the top of the page provide a quick overview of the retrieved page:
+
+**Total comments** shows `total_en_pagina` — the count of records returned. This equals the `size` value you entered unless fewer records exist in the database.
+
+**Positivos** shows the `positivos` percentage value followed by a `%` sign. For example, if the API returns `"72.5"`, the card displays `72.5%`.
+
+**Negativos** shows the `negativos` percentage value followed by a `%` sign. The positivos and negativos percentages always sum to 100.
+
+## Results table
+
+The table below the summary cards lists every record from the `content` array:
+
+| Column | Description |
+|---|---|
+| **Comentario** | The original comment text stored in the database |
+| **Prevision** | Classification badge: green for `POSITIVO`, red for `NEGATIVO` |
+| **Probabilidad** | Confidence score as a percentage with a mini progress bar |
+
+<Tip>
+  Use the statistics panel to spot shifts in sentiment over time. Fetch a large page (e.g., `size=200`) to get a broader sample, then export the results for offline analysis.
+</Tip>
+
+## What's next
+
+<CardGroup cols={2}>
+  <Card title="Export results" icon="download" href="/features/export-csv">
+    Download the statistics results as a formatted CSV with a summary section.
+  </Card>
+  <Card title="Bulk CSV analysis" icon="file-csv" href="/features/bulk-csv-analysis">
+    Process new comments in bulk and add them to the database.
+  </Card>
+</CardGroup>

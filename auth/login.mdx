@@ -1,0 +1,64 @@
+---
+title: "Logging In"
+description: "Authenticate with your email and password to access the SentimentAPI dashboard."
+---
+
+Use the login page at `/login` to start a session. Authentication is handled by a Next.js server action — your credentials are submitted directly to the server and never exposed to the browser.
+
+## Steps
+
+<Steps>
+  <Step title="Navigate to /login">
+    Open your browser and go to the `/login` route of your SentimentAPI instance. You will see a form with two fields.
+  </Step>
+  <Step title="Enter your email address">
+    Type your email address into the **Correo Electrónico** field (`type="email"`, required).
+  </Step>
+  <Step title="Enter your password">
+    Type your password into the **Contraseña** field. The underlying form field name is `contrasenia` (required).
+  </Step>
+  <Step title="Click Iniciar Sesión">
+    Submit the form by clicking the **Iniciar Sesión** button. The server action sends your credentials to the backend.
+  </Step>
+  <Step title="Redirect to the analysis dashboard">
+    On a successful login, you are automatically redirected to `/sentiment` — the main analysis dashboard. A `session_token` cookie is set for your session.
+  </Step>
+</Steps>
+
+## Underlying API call
+
+The login form triggers a `POST /login` request to the backend. You can call this endpoint directly if you are integrating programmatically:
+
+```http
+POST /login
+Content-Type: application/json
+
+{
+  "email": "user@example.com",
+  "contrasenia": "your_password"
+}
+```
+
+### Successful response
+
+```json
+{
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+}
+```
+
+The returned `token` is a signed JWT. When the login form is used in the browser, this token is stored automatically as an `httpOnly` cookie named `session_token` — you do not need to handle it manually.
+
+## Error states
+
+If login fails, the form displays an inline error message. The three possible errors are:
+
+| Condition | Message displayed |
+|---|---|
+| Wrong email or password | `Credenciales incorrectas. Intenta de nuevo.` |
+| Backend returned no token | `No se recibió un token válido.` |
+| Authentication service unreachable | `El servicio de autenticación no está disponible.` |
+
+<Note>
+  The login form uses a Next.js server action (`loginAction`). The token is stored as an `httpOnly` cookie automatically on the server — it is never written to `localStorage` or exposed to client-side JavaScript.
+</Note>

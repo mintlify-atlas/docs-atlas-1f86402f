@@ -1,0 +1,113 @@
+---
+title: "Bulk CSV Analysis"
+description: "Upload a CSV file to analyze thousands of comments at once."
+---
+
+The bulk CSV upload feature at `/sentiment/upload-csv` lets you process large volumes of comments in a single operation. Instead of submitting one comment at a time, you prepare a CSV file and the platform runs every row through the AI model, returning a complete results table.
+
+## Workflow
+
+<Steps>
+  <Step title="Prepare your CSV file">
+    Create a CSV file with a `texto` column. Each row should contain one comment to analyze. The file must be under 3 MB.
+
+    ```csv
+    texto
+    "Great product, very satisfied"
+    "Delivery was late and packaging damaged"
+    "Excellent customer service"
+    ```
+
+    <Tip>If your dataset exceeds 3 MB, split it into multiple files and upload them separately.</Tip>
+  </Step>
+
+  <Step title="Upload the file">
+    Navigate to `/sentiment/upload-csv`. Drag your CSV file onto the upload area or click **Seleccionar archivo** to choose a file from your device.
+  </Step>
+
+  <Step title="Start processing">
+    Click **Iniciar Procesamiento Masivo**. The platform validates the file size client-side before uploading. If the file passes validation, it is sent to the API for processing.
+  </Step>
+
+  <Step title="Review the results">
+    Once processing completes, a results table appears on the page with a row for each comment in your CSV. The table shows the same **Comentario**, **Prevision**, and **Probabilidad** columns as the single analysis view.
+
+    An **Exportar CSV** button appears above the table once results are loaded. Click it to download all results as a CSV file.
+  </Step>
+</Steps>
+
+## CSV format
+
+Your input file must include a `texto` column. The column header must be exactly `texto` (lowercase). Additional columns in the file are ignored.
+
+```csv
+texto
+"Great product, very satisfied"
+"Delivery was late and packaging damaged"
+"Excellent customer service"
+"The app crashed every time I tried to check out"
+"Fast shipping and well-packaged"
+```
+
+## File size limit
+
+The maximum allowed file size is **3 MB** (3,145,728 bytes). This limit is enforced in two places:
+
+- **Client-side**: The browser checks the file size before uploading. If the file exceeds 3 MB, the upload is blocked immediately without making an API call.
+- **Server-side**: The API also enforces the limit. If a file somehow bypasses client-side validation, the server rejects it.
+
+<Warning>
+  Files larger than 3 MB will be rejected. Split large datasets into multiple files before uploading.
+</Warning>
+
+## API call
+
+When you submit the form, the dashboard sends a multipart request:
+
+```http
+POST /sentiment/upload-csv
+Authorization: Bearer <token>
+Content-Type: multipart/form-data
+
+[field name: file] your-file.csv
+```
+
+The file is attached as the `file` field in the `multipart/form-data` body.
+
+## Error codes
+
+If the upload or processing fails, the dashboard displays an error message based on the HTTP status code returned by the API:
+
+| Status code | Cause | What to do |
+|---|---|---|
+| `401` | File is too large (>3 MB) | Reduce the file size and try again |
+| `413` | Server-side size limit exceeded | Split your file into smaller batches |
+| `403` | Your account does not have permission to use this feature | Contact your administrator |
+| `500` | Internal server error | Try again later; contact support if the issue persists |
+
+<Note>
+  A `401` response in this context specifically indicates that the uploaded file is too large, not an authentication failure. Authentication errors are handled separately before the file is processed.
+</Note>
+
+## Results table
+
+The results table displays one row per comment from the original CSV:
+
+| Column | Description |
+|---|---|
+| **Comentario** | The original comment text from the `texto` column |
+| **Prevision** | A colored badge: green for `POSITIVO`, red for `NEGATIVO` |
+| **Probabilidad** | Confidence score as a percentage with a mini progress bar |
+
+The **Exportar CSV** button appears after results are loaded. See [Export results to CSV](/features/export-csv) for details on the export format.
+
+## What's next
+
+<CardGroup cols={2}>
+  <Card title="Export results" icon="download" href="/features/export-csv">
+    Download your bulk analysis results as a formatted CSV file.
+  </Card>
+  <Card title="Statistics panel" icon="chart-bar" href="/features/statistics">
+    View aggregated statistics across your most recent stored analyses.
+  </Card>
+</CardGroup>

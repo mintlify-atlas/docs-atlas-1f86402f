@@ -1,0 +1,52 @@
+---
+title: "POST /sentiment/export-csv"
+description: "Export an array of sentiment results as a downloadable CSV file."
+---
+
+**`POST /sentiment/export-csv`** — Requires `Authorization: Bearer <token>`.
+
+Submit an array of sentiment analysis results to receive a downloadable CSV file. Pass the output from `POST /sentiment` or `POST /sentiment/upload-csv` directly as the request body.
+
+## Request body
+
+The request body is an array of sentiment result objects — the same format returned by the analysis endpoints.
+
+<ParamField body="texto" type="string" required>
+  The comment text.
+</ParamField>
+
+<ParamField body="prevision" type="string" required>
+  The classification result. Must be `"POSITIVO"` or `"NEGATIVO"`.
+</ParamField>
+
+<ParamField body="probabilidad" type="number" required>
+  The confidence score for the classification, between 0 and 1.
+</ParamField>
+
+### Example request
+
+```http
+POST /sentiment/export-csv
+Authorization: Bearer <token>
+Content-Type: application/json
+
+[
+  { "texto": "Great product", "prevision": "POSITIVO", "probabilidad": 0.964 },
+  { "texto": "Too expensive", "prevision": "NEGATIVO", "probabilidad": 0.887 }
+]
+```
+
+## Response
+
+The response is a binary CSV blob.
+
+| Property | Value |
+|----------|-------|
+| Content-Type | `text/csv` |
+| Downloaded filename | `resultados_sentimiento.csv` |
+
+The response body is the raw CSV file content, intended to be saved or triggered as a file download in the browser.
+
+<Note>
+  The Statistics page in the SentimentAPI frontend uses client-side CSV generation instead of this endpoint. See `/features/export-csv` for details on that implementation.
+</Note>

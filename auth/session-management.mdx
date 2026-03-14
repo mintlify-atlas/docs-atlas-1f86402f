@@ -1,0 +1,83 @@
+---
+title: "Session Management"
+description: "Understand how sessions are created, maintained, and expired in SentimentAPI."
+---
+
+SentimentAPI sessions are backed by a single JWT stored in two places: an `httpOnly` cookie managed by the Next.js server, and the `UserContext` state available in React components.
+
+## Session cookie
+
+When you log in, the server action writes the following cookie:
+
+| Property | Value |
+|---|---|
+| Name | `session_token` |
+| `httpOnly` | `true` — not readable by browser JavaScript |
+| `secure` | `true` in production, `false` in development |
+| `sameSite` | `lax` |
+| `maxAge` | `7200` seconds (2 hours) |
+| `path` | `/` |
+
+The browser attaches this cookie to every request automatically. You do not need to manage it manually.
+
+## Accessing the token in React components
+
+For direct API calls made from client components, the JWT is available via the `useUser()` hook:
+
+```typescript
+const { user } = useUser();
+const token = user?.token;
+```
+
+The `UserData` type returned by `useUser()` is:
+
+```typescript
+interface UserData {
+  idUser: number | string;
+  name: string;
+  role: string;
+  token: string;
+}
+```
+
+## Making authenticated API calls
+
+All protected endpoints require a `Authorization: Bearer` header. Use `user.token` from `useUser()` to set it:
+
+```typescript
+const { user } = useUser();
+const token = user?.token;
+
+const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/sentiment`, {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+    "Authorization": `Bearer ${token}`
+  },
+  body: JSON.stringify([{ texto: comment }]),
+});
+```
+
+<Note>
+  The `NEXT_PUBLIC_API_URL` environment variable must be set to the base URL of the backend API server (e.g., `https://api.yourdomain.com`). Without it, all API calls will fail.
+</Note>
+
+## Session expiry and the unauthenticated state
+
+The session cookie expires **2 hours after login**. Once it expires:
+
+- `user?.token` in `UserContext` will be `null`.
+- Every protected page (`/sentiment`, `/sentiment/upload-csv`, `/sentiment/statistics`) checks for a valid token at render time:
+
+  ```typescript
+  const token = user?.token;
+  // If token is null, the page renders an error state
+  ```
+
+- When `token` is `null`, the page displays a "No autenticado" message with a link to `/login` so you can start a new session.
+
+To restore access, log in again at `/login`.
+
+<Warning>
+  Never store the JWT token in `localStorage` or `sessionStorage`. SentimentAPI stores the token exclusively in an `httpOnly` cookie, which is protected from JavaScript access and cross-site scripting (XSS) attacks. Copying the token to browser storage removes this protection.
+</Warning>
